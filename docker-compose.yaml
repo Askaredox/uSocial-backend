@@ -1,0 +1,33 @@
+version: '3'
+
+services: 
+    serve:
+        build: .
+        container_name: servidor
+        ports:
+            - "5000:5000"
+        volumes:
+            - .:/codeSERVE
+        networks: 
+            app_net:
+                ipv4_address: 172.19.0.2
+    db:
+        image: mongo:latest
+        container_name: mongodb
+        ports:
+            - "27017-27019:27017-27019"
+        volumes: 
+            - database:/data/db
+        networks:
+            app_net:
+                ipv4_address: 172.19.0.3
+
+networks:
+    app_net:
+        ipam:
+            driver: default
+            config:
+            - subnet: "172.19.0.0/24"
+
+volumes:
+    database:
