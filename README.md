@@ -37,3 +37,39 @@ Post
     "User": "Askar",
     "Tags": ["Flores", "Campo", "Carro"]
 }
+
+## Como usar init.sh y start.sh
+
+### init.sh
+
+Primero creas un archivo llamado init.sh:
+
+```$ nano init.sh```
+
+Copias y pegas el contenido de init.sh del repositorio dentro de este archivo y le das `ctrl+x` y enter. 
+
+Luego le agregas permisos de ejecución:
+
+```$ chmod +x init.sh```
+
+Y finalmente ejecutas el archivo:
+
+```$ ./init.sh```
+
+Y esperas a que se instale todo y lo corra
+
+SOLO PARA LA PRIMERA VEZ QUE INICIAS UNA MAQUINA
+
+### start.sh
+
+Agregas los permisos de ejecución:
+
+```$ chmod +x start.sh```
+
+Y finalmente ejecutas el archivo:
+
+```$ ./start.sh```
+
+Esperas a que corra docker compose
+
+USAR CADA VEZ QUE ENCIENDES LA MAQUINA DESPUES DE LA PRIMERA VEZ
