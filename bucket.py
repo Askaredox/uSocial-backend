@@ -31,30 +31,27 @@ class Bucket:
             self.CLIENT.put_object(
                 Body=f,
                 Bucket=self.BUCKET_NAME,
-                Key=file_path
+                Key=file_path,
+                ContentType='image/{}'.format(ext)
             )
         return file_path
 
-    def write_post(self, fecha, hora, image64, ext):
+    def write_post(self, image64, ext):
         """Guardar imagen de estudiante en bucket"""
         file_content = base64.b64decode(image64)
-        fecha = fecha.replace('/', '')
-        hora = hora.replace(':', '')
-        file_name = '{}-{}.{}'.format(fecha+hora, uuid.uuid4(), ext)
+        file_name = '{}.{}'.format(uuid.uuid4(), ext)
         file_path = '{}/{}'.format(self.FOLDER_POSTS, file_name)
 
-        f = tempfile.TemporaryFile(dir='tmp')
-        f.write(file_content)
-        f.seek(0)
+        with tempfile.TemporaryFile(suffix='.{}'.format(ext)) as f:
+            f.write(file_content)
+            f.seek(0)
 
-        self.CLIENT.put_object(
-            Body=f,
-            Bucket=self.BUCKET_NAME,
-            Key=file_path,
-            ContentType='image/{}'.format(ext)
-        )
-
-        f.close()
+            self.CLIENT.put_object(
+                Body=f,
+                Bucket=self.BUCKET_NAME,
+                Key=file_path,
+                ContentType='image/{}'.format(ext)
+            )
 
         return file_path
 

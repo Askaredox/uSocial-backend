@@ -12,6 +12,7 @@ class Rekog:
         )
 
     def get_tags(self, ruta):
+        tags=[]
         response = self.CLIENT.detect_labels(
             Image ={
                 'S3Object':{
@@ -20,9 +21,11 @@ class Rekog:
                 }
             },
             MaxLabels=10,
-            MinConfidence=75
+            MinConfidence=90
         )
-        return response
+        for label in response['Labels']:
+            tags.append(label['Name'])
+        return tags
 
 
 
