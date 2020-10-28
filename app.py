@@ -40,7 +40,10 @@ def newUser():
                 response=service_cognito.sign_up(obj['Usuario'],content['Contrasenia'])
                 if response['status']==200: 
                     s3= Bucket()
-                    obj['Foto']=s3.write_user(obj['Usuario'],content['Foto']['base64'],content['Foto']['ext'])
+                    if obj['Foto']['base64'] and obj['Foto']['ext']:
+                        obj['Foto']=s3.write_user(obj['Usuario'],content['Foto']['base64'],content['Foto']['ext'])
+                    else:
+                        obj['Foto']=''
                     ret = db.Create_user(obj)
                     return {"status": 200 ,"id":ret}
                 return  response
@@ -61,8 +64,9 @@ def login():
 
             if res2['status']==200:
                 res2['datos']['Token']=res['response']
-                s3= Bucket()
-                res2['datos']['Foto']= s3.get_image64(res2['datos']['Foto'])
+                if res2['datos']['Foto']:
+                    s3= Bucket()
+                    res2['datos']['Foto']= s3.get_image64(res2['datos']['Foto'])
                 array={
                     'status':200,
                     'response':{
