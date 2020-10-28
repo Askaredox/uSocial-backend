@@ -29,4 +29,13 @@ class Bucket:
                 Key = file_path
             )
         return file_path
+
+    def get_pub(self, ruta):
+        get = self.CLIENT.get_object(
+            Bucket = self.BUCKET_NAME,
+            Key = ruta
+        )
+        content_bytes = get['Body'].read()
+        base64_bytes = base64.b64encode(content_bytes)
+        return {'base64':base64_bytes.decode('ascii'),'type':get['ContentType']}
         

@@ -1,6 +1,6 @@
 import pymongo
 import json
-
+from bucket import Bucket
 
 class Mongo:
     def __init__(self):
@@ -82,9 +82,11 @@ class Mongo:
         return ret
 
     def __as_post(self, obj):
+        s3 = Bucket()
+        img = s3.get_pub(obj['Image']) if obj['Image']!='' else None
         return {
             'Id': str(obj['_id']),
-            'Image': obj['Image'],
+            'Image': img,
             'Text': obj['Text'],
             'Date': obj['Date'],
             'Hour': obj['Hour'],

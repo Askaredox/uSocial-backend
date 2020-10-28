@@ -89,7 +89,7 @@ def newPub():
             'Date': time.strftime("%d/%m/%y"),
             'Hour': time.strftime("%H:%M:%S"),
             'User': content['User'],
-            'Tags': 'no todavia',
+            'Tags': ['aun no'],
         }
         ret = db.create_post(obj)
 
