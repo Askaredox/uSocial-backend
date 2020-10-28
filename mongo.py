@@ -44,8 +44,8 @@ class Mongo:
     def login(self,obj):
         obj= self.Usuarios.find_one(obj)
         if(obj):
-            return True
-        return False
+            return {'status':200,'datos': self.__as_user(obj)}
+        return {'status':500,'error': 'no encontrado'}
     
     #aggregar amigos a lista
     def add_Friend(self,objeto):

@@ -54,7 +54,21 @@ def login():
     if request.method == 'POST':
         content = request.get_json()
         service_cognito = Cognito()
-        return str(service_cognito.login(content['Usuario'],content['Contrasenia']))
+        res = service_cognito.login(content['Usuario'],content['Contrasenia'])
+        if res['status']==200:
+            res2= db.login({'Usuario': content['Usuario']})
+
+            if res2['status']==200:
+                res2['datos']['Token']=res['response']
+                s3= Bucket()
+                res2['datos']['Foto']= s3.get_image64(res2['datos']['Foto'])
+                array={
+                    'status':200,
+                    'response':{
+                        'datos':res2['datos']
+                    }
+                }
+                return str(array)
 
 @app.route('/usuarios/add',methods=['POST'])
 def add_Friend():

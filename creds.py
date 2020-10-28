@@ -13,3 +13,9 @@ cognito = {
     'pool_id':'us-east-2_S0GFKSNZO',
     'client_id':'1s7k5sh2qke0jfb3baerdekim5'
 }
+
+admin = {
+    'access_key_id': 'AKIAJ2LJWWR3ERAXDVVQ',
+    'secret_access_key': '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',
+    'region': 'us-east-2',
+}

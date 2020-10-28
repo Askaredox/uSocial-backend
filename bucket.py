@@ -13,8 +13,8 @@ class Bucket:
     def __init__(self):
         self.CLIENT = boto3.client(
             's3',
-            aws_access_key_id = creds.admin['access_key_id'],
-            aws_secret_access_key = creds.admin['secret_access_key'],
+            aws_access_key_id = creds.bucket['access-key-id'],
+            aws_secret_access_key = creds.bucket['secret-access-key'],
         )
 
     def write_user(self, user, image64, ext):
