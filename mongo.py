@@ -83,7 +83,7 @@ class Mongo:
 
     def __as_post(self, obj):
         s3 = Bucket()
-        img = s3.get_pub(obj['Image']) if obj['Image']!='' else None
+        img = s3.get_image64(obj['Image']) if obj['Image']!='' else None
         return {
             'Id': str(obj['_id']),
             'Image': img,

@@ -7,9 +7,10 @@ import random
 import time
 from cognito import Cognito
 from bucket import Bucket
+from rekog import Rekog
 ##import simplejson as json
 app = Flask(__name__)
-cors = CORS(app, resources={r"/": {"origin": "*"}})
+cors = CORS(app, resources={r"/*": {"origin": "*"}})
 db = Mongo()
 
 @app.route('/')
@@ -98,13 +99,21 @@ def newPub():
     #time.strftime("%d/%m/%y")
     if request.method == 'POST':
         content = request.get_json()
+        s3 = Bucket()
+        rek = Rekog()
+        ruta = ''
+        tags = []
+        if(content['Image']):
+            ruta = s3.write_post(content['Image'], content['Ext'])
+            tags = rek.get_tags(ruta)
+
         obj = {
-            'Image': content['Image'],
+            'Image': ruta,
             'Text': content['Text'],
             'Date': time.strftime("%d/%m/%y"),
             'Hour': time.strftime("%H:%M:%S") ,
             'User': content['User'],
-            'Tags': ['aun no'],
+            'Tags': tags,
         }
         ret = db.Create_post(obj)
         return {"id": ret}
@@ -124,5 +133,12 @@ def Filtrar():
         ret = db.filter_Post(User,Tag)
         return json.dumps(ret)
 
+@app.route('/tags',methods=['POST'])
+def getTags():
+    content = request.get_json()
+    ruta = content['Ruta']
+    rek = Rekog()
+    return rek.get_tags(ruta)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
