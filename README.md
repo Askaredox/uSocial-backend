@@ -1,10 +1,9 @@
 * sudo docker-compose -f "docker-compose.yaml" down
 * sudo docker-compose -f "docker-compose.yaml" up -d --build
-
 |Ruta			|Metodo	  	|		|	
 | ----------- 		| ------------- 	|------------	|
 |/usuarios	      	|	GET	  	|ninguno	|
-|/usuarios/new		|      POST	  	|{"Nombre":string,"Usuario":string,"Contrasenia":string,"Foto":string,"ModoBot":bool,"Amigos":[strings]}		|
+|/usuarios/new		|      POST	  	|{"Nombre":string,"Usuario":string,"Contrasenia":string,"Confirmacion":string,"Foto":{"base64":string,"ext":string},"ModoBot":bool,"Amigos":[strings]}		|
 |/login			|      POST		|{"Usuario":string,"Contrasenia":string}		|
 |/usuarios/add		|      POST	  	|{"Usuario":string,"Amigo":string user del nuevo amigo}		|
 |/posts			|      GET	  	|Ninguno	|
