@@ -7,6 +7,7 @@ import random
 import time
 from cognito import Cognito
 from bucket import Bucket
+from rekog import Rekog
 ##import simplejson as json
 app = Flask(__name__)
 cors = CORS(app, resources={r"/": {"origin": "*"}})
@@ -94,6 +95,9 @@ def newPub():
     #time.strftime("%d/%m/%y")
     if request.method == 'POST':
         content = request.get_json()
+
+
+        
         obj = {
             'Image': content['Image'],
             'Text': content['Text'],
