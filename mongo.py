@@ -95,7 +95,7 @@ class Mongo:
         }
 
     #crear post
-    def create_post(self,obj):
+    def Create_post(self,obj):
         ret = self.Posts.insert_one(obj)
         return str(ret.inserted_id)
 
