@@ -87,7 +87,45 @@ class Mongo:
             return -1
         return -1  # no existe el usuario
 
-
+#update user
+    def update_user(self,user,new):
+        cant=0
+        if new['Nombre']:
+            resultado = self.Usuarios.update_one(
+                    {
+                        'Usuario': user
+                    },
+                    {
+                        '$set': {
+                            "Nombre":new["Nombre"],
+                            "ModoBot":new["ModoBot"]
+                        }
+                    }) 
+            cant = cant+ resultado.modified_count
+        if new['Foto']:
+            resultado = self.Usuarios.update_one(
+                    {
+                        'Usuario': user
+                    },
+                    {
+                        '$set': {
+                            "Foto":new["Foto"],
+                            "ModoBot":new["ModoBot"]
+                        }
+                    }) 
+            cant = cant+ resultado.modified_count
+        else:
+            resultado = self.Usuarios.update_one(
+                    {
+                        'Usuario': user
+                    },
+                    {
+                        '$set': {
+                            "ModoBot":new["ModoBot"]
+                        }
+                    }) 
+            cant = cant+ resultado.modified_count
+        return cant
 # posts
 
 

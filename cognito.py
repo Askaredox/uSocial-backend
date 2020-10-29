@@ -59,3 +59,22 @@ class Cognito:
             }
             return  array
         return {  'status':200, 'response':response['AuthenticationResult']['AccessToken']  }
+
+    def Update_Username(self,Token,Username):
+        try:
+            response = self.idp_client.update_user_attributes(
+                UserAttributes=[
+                    {
+                        'Name': 'USERNAME',
+                        'Value': Username
+                    },
+                ],
+                AccessToken=Token,
+            )
+        except ClientError as e:
+            array={
+                'status':500,
+                'error': e.response['Error']['Code']
+            }
+            return  array
+        return {  'status':200, 'response':response  }
