@@ -8,6 +8,7 @@ import time
 from cognito import Cognito
 from bucket import Bucket
 from rekog import Rekog
+from translate import Translate
 ##import simplejson as json
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})
@@ -169,6 +170,12 @@ def getTags():
     rek = Rekog()
     return rek.get_tags(ruta)
 
+@app.route('/posts/traducir', methods=['POST'])
+def translate():
+    if request.method=='POST':
+        content = request.get_json()
+        trans= Translate()
+        return {'Traduccion':trans.Traducir(content['Text'])}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
