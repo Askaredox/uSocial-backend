@@ -72,7 +72,21 @@ def login():
         service_cognito = Cognito()
         res = service_cognito.login(content['Usuario'], content['Contrasenia'])
         if res['status'] == 200:
-            return str(res['response'])
+            res2 = db.login({'Usuario': content['Usuario']})
+
+            if res2['status'] == 200:
+                res2['datos']['Token'] = res['response']
+                if res2['datos']['Foto']:
+                    s3 = Bucket()
+                    res2['datos']['Foto'] = s3.get_image64(
+                        res2['datos']['Foto'])
+                array = {
+                    'status': 200,
+                    'response': {
+                        'datos': res2['datos']
+                    }
+                }
+                return json.dumps(array)
         else:
             return {'status': 1, 'error': 'Contraseña y/o usuario incorrecto'}
 
@@ -93,26 +107,27 @@ def add_Friend():
 
 @app.route('/usuarios/modify', methods=['PUT'])
 def update():
-    if request.method=='PUT':
+    if request.method == 'PUT':
         content = request.get_json()
-        obj={}
-        obj['Nombre']=content['Nombre']
-        obj['ModoBot']=content['ModoBot']
+        obj = {}
+        obj['Nombre'] = content['Nombre']
+        obj['ModoBot'] = content['ModoBot']
         if content['Foto']['base64'] and content['Foto']['ext']:
-            antiguo= db.login({'Usuario':content['Usuario']})['datos']
-            antiguo= antiguo['Foto']
-            s3= Bucket()
+            antiguo = db.login({'Usuario': content['Usuario']})['datos']
+            antiguo = antiguo['Foto']
+            s3 = Bucket()
 
-            #obj['Foto']="foto-usuario/Guiss097-3f399b3f-2f89-487a-a3e9-bd371f315a82.jpg"
+            # obj['Foto']="foto-usuario/Guiss097-3f399b3f-2f89-487a-a3e9-bd371f315a82.jpg"
             if antiguo:
                 s3.delete_picture(antiguo)
-            obj['Foto']=s3.write_user(content['Usuario'],content['Foto']['base64'],content['Foto']['ext'])
+            obj['Foto'] = s3.write_user(
+                content['Usuario'], content['Foto']['base64'], content['Foto']['ext'])
         else:
-            obj['Foto']=""
+            obj['Foto'] = ""
 
-        ret = db.update_user(content['Usuario'],obj)
-        return  {'modificados':ret}
-        
+        ret = db.update_user(content['Usuario'], obj)
+        return {'modificados': ret}
+
 # publicaciones
 
 
@@ -163,30 +178,13 @@ def Filtrar():
         return json.dumps(ret)
 
 
-@app.route('/tags', methods=['POST'])
-def getTags():
-    content = request.get_json()
-    ruta = content['Ruta']
-    rek = Rekog()
-    return rek.get_tags(ruta)
-
 @app.route('/posts/traducir', methods=['POST'])
 def translate():
-    if request.method=='POST':
+    if request.method == 'POST':
         content = request.get_json()
-        trans= Translate()
-        return {'Traduccion':trans.Traducir(content['Text'])}
+        trans = Translate()
+        return {'Traduccion': trans.Traducir(content['Text'])}
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
-"""
-{
-    "Usuario":"Andy",
-    "Contrasenia":"Tacos123!",
-    "Confirmacion":"Tacos123!",
-    "Nombre":"andres",
-    "ModoBot":false,
-    "Amigos":[],
-    "Foto":{"base64":"","Ext":""}
-}
-"""
