@@ -10,6 +10,8 @@
 |/posts/new	   	|      POST	  	|{"Image":string,"Text":string,"User":string quien publica,"Tags":[strings]}		|
 |/posts/home	  	|      GET	  	 |User=...	|		
 |/posts/filtrar	|      GET	  	 |User=...&Tag=...|
+|/usuarios/modify|      PUT      | {"Nombre":string,"Usuario":string,"Foto":{"base64":string,"ext":string},"ModoBot":bool}|
+|/posts/traducir|       POST     | {"Text":string}|
 
 
 ejemplo de documentos de cada colección

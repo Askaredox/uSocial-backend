@@ -8,6 +8,7 @@ import time
 from cognito import Cognito
 from bucket import Bucket
 from rekog import Rekog
+from translate import Translate
 ##import simplejson as json
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})
@@ -71,21 +72,7 @@ def login():
         service_cognito = Cognito()
         res = service_cognito.login(content['Usuario'], content['Contrasenia'])
         if res['status'] == 200:
-            res2 = db.login({'Usuario': content['Usuario']})
-
-            if res2['status'] == 200:
-                res2['datos']['Token'] = res['response']
-                if res2['datos']['Foto']:
-                    s3 = Bucket()
-                    res2['datos']['Foto'] = s3.get_image64(
-                        res2['datos']['Foto'])
-                array = {
-                    'status': 200,
-                    'response': {
-                        'datos': res2['datos']
-                    }
-                }
-                return json.dumps(array)
+            return str(res['response'])
         else:
             return {'status': 1, 'error': 'Contraseña y/o usuario incorrecto'}
 
@@ -103,6 +90,29 @@ def add_Friend():
             ret = ret+db.add_Friend(content)
         return {'modificados': ret}
 
+
+@app.route('/usuarios/modify', methods=['PUT'])
+def update():
+    if request.method=='PUT':
+        content = request.get_json()
+        obj={}
+        obj['Nombre']=content['Nombre']
+        obj['ModoBot']=content['ModoBot']
+        if content['Foto']['base64'] and content['Foto']['ext']:
+            antiguo= db.login({'Usuario':content['Usuario']})['datos']
+            antiguo= antiguo['Foto']
+            s3= Bucket()
+
+            #obj['Foto']="foto-usuario/Guiss097-3f399b3f-2f89-487a-a3e9-bd371f315a82.jpg"
+            if antiguo:
+                s3.delete_picture(antiguo)
+            obj['Foto']=s3.write_user(content['Usuario'],content['Foto']['base64'],content['Foto']['ext'])
+        else:
+            obj['Foto']=""
+
+        ret = db.update_user(content['Usuario'],obj)
+        return  {'modificados':ret}
+        
 # publicaciones
 
 
@@ -160,6 +170,12 @@ def getTags():
     rek = Rekog()
     return rek.get_tags(ruta)
 
+@app.route('/posts/traducir', methods=['POST'])
+def translate():
+    if request.method=='POST':
+        content = request.get_json()
+        trans= Translate()
+        return {'Traduccion':trans.Traducir(content['Text'])}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)

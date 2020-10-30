@@ -18,6 +18,13 @@ class Bucket:
             aws_secret_access_key=creds.bucket['secret-access-key'],
         )
 
+    def delete_picture(self,key):
+        response = self.CLIENT.delete_object(
+            Bucket=self.BUCKET_NAME,
+            Key= key,
+        )
+        return response
+        
     def write_user(self, user, image64, ext):
         """Guardar imagen de profesor en bucket"""
         file_content = base64.b64decode(image64)
