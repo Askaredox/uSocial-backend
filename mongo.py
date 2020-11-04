@@ -183,3 +183,17 @@ class Mongo:
             if tag in post['Tags']:
                 filtradas.append(post)
         return filtradas
+
+    #obtener tags para filtrar
+    def getTags(self, user):
+        # obtener las publicaciones para ese usuario de sus amigos
+        tags = []
+        posts = []
+        posts = self.get_Home(user)
+
+        for post in posts:
+            for tag in post['Tags']:
+                if not tag in tags:
+                    tags.append(tag)
+        return tags
+
