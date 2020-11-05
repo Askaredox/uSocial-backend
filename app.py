@@ -212,6 +212,15 @@ def salir(data):
     leave_room(data['room'])
 
 
+@app.route('/posts/tags', methods=['GET'])
+def Tags():
+    if request.method=='GET':
+        User = request.args.get('User')
+        ret = db.getTags(User)
+        return json.dumps(ret)
+        
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
     socketio.run(app)

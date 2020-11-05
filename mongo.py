@@ -185,6 +185,21 @@ class Mongo:
                 filtradas.append(post)
         return filtradas
 
+
+    #obtener tags para filtrar
+    def getTags(self, user):
+        # obtener las publicaciones para ese usuario de sus amigos
+        tags = []
+        posts = []
+        posts = self.get_Home(user)
+
+        for post in posts:
+            for tag in post['Tags']:
+                if not tag in tags:
+                    tags.append(tag)
+        return tags
+
+
     def get_chat(self, id1, id2):
         mensajes = []
         obj = self.find_chat(id1, id2)
@@ -216,3 +231,4 @@ class Mongo:
             return obj
         obj = self.Chat.find_one({"id1": id2, "id2": id1})
         return obj
+
