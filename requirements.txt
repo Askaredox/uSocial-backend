@@ -2,3 +2,4 @@ Flask
 Flask-Cors
 PyMongo
 boto3
+flask-socketio
