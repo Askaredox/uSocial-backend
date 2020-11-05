@@ -1,6 +1,7 @@
 import pymongo
 import json
 from bucket import Bucket
+from bson.objectid import ObjectId
 
 
 class Mongo:
@@ -8,6 +9,7 @@ class Mongo:
         client = pymongo.MongoClient("mongodb://172.19.0.3:27017/")['uSocial']
         self.Usuarios = client['User']
         self.Posts = client['Post']
+        self.Chat = client['Chat']
 
 # usuarios
     def get_users(self):
@@ -87,47 +89,46 @@ class Mongo:
             return -1
         return -1  # no existe el usuario
 
-#update user
-    def update_user(self,user,new):
-        cant=0
+# update user
+    def update_user(self, user, new):
+        cant = 0
         if new['Nombre']:
             resultado = self.Usuarios.update_one(
-                    {
-                        'Usuario': user
-                    },
-                    {
-                        '$set': {
-                            "Nombre":new["Nombre"],
-                            "ModoBot":new["ModoBot"]
-                        }
-                    }) 
-            cant = cant+ resultado.modified_count
+                {
+                    'Usuario': user
+                },
+                {
+                    '$set': {
+                        "Nombre": new["Nombre"],
+                        "ModoBot": new["ModoBot"]
+                    }
+                })
+            cant = cant + resultado.modified_count
         if new['Foto']:
             resultado = self.Usuarios.update_one(
-                    {
-                        'Usuario': user
-                    },
-                    {
-                        '$set': {
-                            "Foto":new["Foto"],
-                            "ModoBot":new["ModoBot"]
-                        }
-                    }) 
-            cant = cant+ resultado.modified_count
+                {
+                    'Usuario': user
+                },
+                {
+                    '$set': {
+                        "Foto": new["Foto"],
+                        "ModoBot": new["ModoBot"]
+                    }
+                })
+            cant = cant + resultado.modified_count
         else:
             resultado = self.Usuarios.update_one(
-                    {
-                        'Usuario': user
-                    },
-                    {
-                        '$set': {
-                            "ModoBot":new["ModoBot"]
-                        }
-                    }) 
-            cant = cant+ resultado.modified_count
+                {
+                    'Usuario': user
+                },
+                {
+                    '$set': {
+                        "ModoBot": new["ModoBot"]
+                    }
+                })
+            cant = cant + resultado.modified_count
         return cant
 # posts
-
 
     def get_posts(self):
         ret = []
@@ -183,3 +184,35 @@ class Mongo:
             if tag in post['Tags']:
                 filtradas.append(post)
         return filtradas
+
+    def get_chat(self, id1, id2):
+        mensajes = []
+        obj = self.find_chat(id1, id2)
+        if(obj != None):
+            return {"id":str(obj['_id']),"chat": obj["chat"]}
+        else:
+            res = self.Chat.insert_one({
+                "id1": id1,
+                "id2": id2,
+                "chat": []
+            })
+            return {"id":str(res.inserted_id), "chat": []}
+
+    def send_chat(self, room, id, mess):
+        self.Chat.find_one_and_update(
+            {'_id': ObjectId(room)},
+            {'$push':
+                {'chat': {
+                    'id': id,
+                    'mensaje': mess
+                }}
+            }
+        )
+        return {"ok": True}
+
+    def find_chat(self, id1, id2):
+        obj = self.Chat.find_one({"id1": id1, "id2": id2})
+        if(obj != None):
+            return obj
+        obj = self.Chat.find_one({"id1": id2, "id2": id1})
+        return obj

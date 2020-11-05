@@ -1,4 +1,5 @@
 from flask import Flask, url_for, request, render_template
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import hashlib
 from mongo import Mongo
 from flask_cors import CORS
@@ -9,9 +10,11 @@ from cognito import Cognito
 from bucket import Bucket
 from rekog import Rekog
 from translate import Translate
+import sys
 ##import simplejson as json
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})
+socketio = SocketIO(app, cors_allowed_origins="*")
 db = Mongo()
 
 
@@ -186,5 +189,29 @@ def translate():
         return {'Traduccion': trans.Traducir(content['Text'])}
 
 
+@socketio.on('connect')
+def conectar():
+    emit('respuesta', {'ok': True})
+
+
+@socketio.on('join')
+def unir(data):
+    room = db.get_chat(data['id1'], data['id2'])
+    join_room(room['id'])
+    emit('join_r', room)
+
+
+@socketio.on('send_m')
+def send_m(data):
+    db.send_chat(data['room'], data['id'], data['mensaje'])
+    emit('get_me', {'mensaje':data['mensaje'], 'id':data['id']}, room=data['room'])
+
+
+@socketio.on('leave')
+def salir(data):
+    leave_room(data['room'])
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
+    socketio.run(app)
