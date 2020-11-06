@@ -11,11 +11,13 @@ from bucket import Bucket
 from rekog import Rekog
 from translate import Translate
 import sys
+import requests
 ##import simplejson as json
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origin": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 db = Mongo()
+lambda_URL = 'https://8xy3del88d.execute-api.us-east-2.amazonaws.com/Test/info'
 
 
 @app.route('/')
@@ -41,27 +43,31 @@ def newUser():
         content = request.get_json()
         if not db.exist_user(content['Usuario']):
             if(content['Contrasenia'] == content['Confirmacion']):
-                obj = {
-                    'Nombre': content['Nombre'],
-                    'Usuario': content['Usuario'],
-                    'Contrasenia': hashlib.sha1(bytes((content['Contrasenia']), encoding="utf-8")).hexdigest(),
-                    'Foto': content['Foto'],
-                    'ModoBot': content['ModoBot'],
-                    'Amigos': content['Amigos'],
-                }
-                service_cognito = Cognito()
-                response = service_cognito.sign_up(
-                    obj['Usuario'], content['Contrasenia'])
-                if response['status'] == 200:
-                    s3 = Bucket()
-                    if obj['Foto']['base64'] and obj['Foto']['ext']:
-                        obj['Foto'] = s3.write_user(
-                            obj['Usuario'], content['Foto']['base64'], content['Foto']['ext'])
-                    else:
-                        obj['Foto'] = ''
-                    ret = db.Create_user(obj)
-                    return {"status": 200, "id": ret}
-                return response
+                try:
+                    obj = {
+                        'Nombre': content['Nombre'],
+                        'Usuario': content['Usuario'],
+                        'Contrasenia': hashlib.sha1(bytes((content['Contrasenia']), encoding="utf-8")).hexdigest(),
+                        'Foto': content['Foto'],
+                        'ModoBot': content['ModoBot'],
+                        'Amigos': content['Amigos'],
+                    }
+                    service_cognito = Cognito()
+                    response = service_cognito.sign_up(
+                        obj['Usuario'], content['Contrasenia'])
+                    if response['status'] == 200:
+                        s3 = Bucket()
+                        if obj['Foto']['base64'] and obj['Foto']['ext']:
+                            obj['Foto'] = s3.write_user(
+                                obj['Usuario'], content['Foto']['base64'], content['Foto']['ext'])
+                        else:
+                            obj['Foto'] = ''
+                        ret = db.Create_user(obj)
+                        return {"status": 200, "id": ret}
+                    return response
+                except Exception as e:
+                    s = str(e)
+                    return {'status': 1, 'error': s}
             else:
                 return {'status': 1, 'error': 'Contrasenias no coinciden'}
         else:
@@ -204,7 +210,17 @@ def unir(data):
 @socketio.on('send_m')
 def send_m(data):
     db.send_chat(data['room'], data['id'], data['mensaje'])
-    emit('get_me', {'mensaje':data['mensaje'], 'id':data['id']}, room=data['room'])
+    emit('get_me', {'type':0,'mensaje':data['mensaje'], 'id':data['id']}, room=data['room'])
+    if db.is_bot(data['otro']):
+        res = db.bot_data(data['id'],data['otro'],data['mensaje'])
+        if res['ready']:
+            response = requests.post(lambda_URL, data = json.dumps(res['data']))
+            db.send_chat(data['room'], data['otro'], response.text)
+            emit('get_me', {'type':res['data']['Info_Tipo'],'body':response.text, 'id':data['otro']}, room=data['room'])
+        else:
+            db.send_chat(data['room'], data['otro'], res['resp'])
+            emit('get_me', {'type':0,'mensaje':res['resp'], 'id':data['otro']}, room=data['room'])
+    
 
 
 @socketio.on('leave')

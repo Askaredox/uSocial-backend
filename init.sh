@@ -20,6 +20,7 @@ sudo apt update
 sudo apt install -y git
 
 git clone https://github.com/Askaredox/uSocial-backend.git
+cd uSocial-backend
 sudo docker-compose -f "docker-compose.yaml" up -d --build
 sudo docker ps
 echo Está listo!

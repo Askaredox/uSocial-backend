@@ -10,6 +10,7 @@ class Mongo:
         self.Usuarios = client['User']
         self.Posts = client['Post']
         self.Chat = client['Chat']
+        self.Casos = client['Casos']
 
 # usuarios
     def get_users(self):
@@ -185,8 +186,8 @@ class Mongo:
                 filtradas.append(post)
         return filtradas
 
+    # obtener tags para filtrar
 
-    #obtener tags para filtrar
     def getTags(self, user):
         # obtener las publicaciones para ese usuario de sus amigos
         tags = []
@@ -199,28 +200,29 @@ class Mongo:
                     tags.append(tag)
         return tags
 
-
     def get_chat(self, id1, id2):
         mensajes = []
         obj = self.find_chat(id1, id2)
         if(obj != None):
-            return {"id":str(obj['_id']),"chat": obj["chat"]}
+            return {"id": str(obj['_id']), "chat": obj["chat"]}
         else:
             res = self.Chat.insert_one({
                 "id1": id1,
                 "id2": id2,
                 "chat": []
             })
-            return {"id":str(res.inserted_id), "chat": []}
+            return {"id": str(res.inserted_id), "chat": []}
 
     def send_chat(self, room, id, mess):
         self.Chat.find_one_and_update(
             {'_id': ObjectId(room)},
-            {'$push':
-                {'chat': {
-                    'id': id,
-                    'mensaje': mess
-                }}
+            {
+                '$push': {
+                    'chat': {
+                        'id': id,
+                        'mensaje': mess
+                    }
+                }
             }
         )
         return {"ok": True}
@@ -232,3 +234,96 @@ class Mongo:
         obj = self.Chat.find_one({"id1": id2, "id2": id1})
         return obj
 
+    def is_bot(self, id):
+        obj = self.Usuarios.find_one({'_id': ObjectId(id)})
+        return obj['ModoBot']
+
+    def bot_data(self, user, bot, data: str):
+        res = self.Casos.find_one({'user': user, 'bot': bot})
+        tipo_info = data.lower()
+        if(res == None):
+            tipo = 1 if tipo_info == 'casos' else 2 if tipo_info == 'grafica de casos' or tipo_info == 'grafica' else 0
+            if tipo == 1:
+                self.Casos.insert_one({
+                    'user': user,
+                    'bot': bot,
+                    'Info_Tipo': tipo,
+                    'Pais': '',
+                    'Fecha': '',
+                    'Tipo': 0,
+                    'Data': 1
+                })
+            elif tipo == 2:
+                self.Casos.insert_one({
+                    'user': user,
+                    'bot': bot,
+                    'Info_Tipo': tipo,
+                    'Pais': '',
+                    'Rango': '',
+                    'Data': 1
+                })
+            else:
+                return {'ready':False, 'resp': 'Repita los datos, por favor'}
+            return {'ready':False, 'resp': '¿País?'}
+        else:
+            if res['Info_Tipo'] == 1:
+                if res['Data'] == 1:
+                    self.Casos.find_one_and_update(
+                        {'_id': res['_id']},
+                        {
+                            '$set':{
+                                'Data':2,
+                                'Pais':tipo_info.title()
+                            }
+                        }
+                    )
+                    return {'ready':False, 'resp': '¿Fecha?'}
+                elif res['Data'] == 2:
+                    self.Casos.find_one_and_update(
+                        {'_id': res['_id']},
+                        {
+                            '$set':{
+                                'Data':3,
+                                'Fecha':tipo_info
+                            }
+                        }
+                    )
+                    return {'ready':False, 'resp': '¿Tipo de casos (confirmados, recuperados, muertes o todos)?'}
+                else:
+                    self.Casos.find_one_and_delete({'_id': res['_id']})
+                    return {
+                        'ready':True, 
+                        'data':{
+                            'Info_Tipo': res['Info_Tipo'],
+                            'Pais': res['Pais'],
+                            'Fecha': res['Fecha'],
+                            'Tipo': self.get_tipo(tipo_info),
+                        }
+                    }
+            else:
+                if res['Data'] == 1:
+                    self.Casos.find_one_and_update(
+                        {'_id': res['_id']},
+                        {
+                            '$set':{
+                                'Data':2,
+                                'Pais':tipo_info.title()
+                            }
+                        }
+                    )
+                    return {'ready':False, 'resp': '¿Rango de fechas?'}
+                else:
+                    self.Casos.find_one_and_delete({'_id': res['_id']})
+                    return {
+                        'ready':True, 
+                        'data':{
+                            'Info_Tipo': res['Info_Tipo'],
+                            'Pais': res['Pais'],
+                            'Rango': tipo_info,
+                        }
+                    }
+
+    def get_tipo(self, dato:str):
+        data = dato.lower()
+        return 1 if data == 'confirmados' else 2 if data=='recuperados' else 3 if data == 'muertes' else 4
+        pass
